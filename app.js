@@ -174,27 +174,65 @@ function switchView(viewName) {
 function renderData() {
     updateStats();
     renderInventory();
-    renderTransactions();
-    renderActivity();
-    renderMaterialSelect();
-}
+    // Stats
+    document.getElementById('stat-total-items').textContent = system.inventory.length;
+    document.getElementById('stat-total-stock').textContent = system.inventory.reduce((acc, cur) => acc + (parseFloat(cur.stock) || 0), 0).toLocaleString();
+    document.getElementById('stat-low-stock').textContent = system.inventory.filter(m => m.stock <= 0).length;
 
-function updateStats() {
-    const stats = system.getStats();
-    document.getElementById('stat-total-items').textContent = stats.totalItems;
-    document.getElementById('stat-total-stock').textContent = stats.totalStock;
-    document.getElementById('stat-low-stock').textContent = stats.lowStock;
-}
+    // Recent Activity (Dashboard)
+    const activityList = document.getElementById('recent-activity-list');
+    activityList.innerHTML = '';
+    system.transactions.slice(0, 5).forEach(tr => {
+        const mat = system.inventory.find(m => m.id === tr.material_id);
+        const div = document.createElement('div');
+        div.className = 'activity-item';
+        div.style = 'display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border); align-items: center;';
 
-function renderInventory() {
-    const tableBody = document.getElementById('inventory-table-body');
+        const isOut = tr.type === 'out';
+        div.innerHTML = `
+            <div style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${isOut ? '#fee2e2' : '#dcfce7'}; color: ${isOut ? '#ef4444' : '#22c55e'}">
+                <i data-lucide="${isOut ? 'arrow-up-right' : 'arrow-down-left'}"></i>
+            </div>
+            <div style="flex-grow: 1">
+                <div style="font-weight: 600; font-size: 0.9rem">${tr.person} <span style="font-weight: 400; color: var(--text-muted)">${isOut ? 'recorded out' : 'recorded in'}</span></div>
+                <div style="font-size: 0.75rem; color: var(--text-muted)">${mat ? mat.name : tr.material_id} (${tr.quantity} units)</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted)">${new Date(tr.created_at || tr.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        `;
+        activityList.appendChild(div);
+    });
+
+    // Fast Moving Items (Mock logic based on frequency)
+    const fastMovingList = document.getElementById('fast-moving-list');
+    fastMovingList.innerHTML = '';
+    const counts = {};
+    system.transactions.forEach(tr => counts[tr.material_id] = (counts[tr.material_id] || 0) + 1);
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+    sorted.forEach(([id, count]) => {
+        const mat = system.inventory.find(m => m.id === id);
+        if (!mat) return;
+        const div = document.createElement('div');
+        div.style = 'padding: 0.75rem; border-radius: 12px; background: #f8fafc; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;';
+        div.innerHTML = `
+            <div>
+                <div style="font-weight: 600; font-size: 0.85rem">${mat.id}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted)">${mat.name}</div>
+            </div>
+            <div class="badge badge-in">${count}x trans</div>
+        `;
+        fastMovingList.appendChild(div);
+    });
+
+    // Inventory Table
+    const inventoryTableBody = document.getElementById('inventory-table-body');
     const search = document.getElementById('inventory-search').value.toLowerCase();
 
-    const filtered = system.inventory.filter(m =>
+    const filteredInventory = system.inventory.filter(m =>
         m.name.toLowerCase().includes(search) || m.id.toLowerCase().includes(search)
     );
 
-    tableBody.innerHTML = filtered.map(m => `
+    inventoryTableBody.innerHTML = filteredInventory.map(m => `
         <tr>
             <td><strong>${m.id}</strong></td>
             <td>${m.name}</td>
@@ -208,7 +246,6 @@ function renderInventory() {
             </td>
         </tr>
     `).join('');
-    lucide.createIcons();
 }
 
 function renderTransactions() {
