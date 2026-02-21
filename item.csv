@@ -1,0 +1,58 @@
+NO;ITEM DESIGN;URAIAN DESIGN;SATUAN
+;;;
+;;;
+1;AC-ADSS-SM-12C;Jasa Pemasangan Aerial Cable Fiber Optik Single Mode 12 Core G.652 C Type ADSS Cable;meter
+2;AC-ADSS-SM-24C;Jasa Pemasangan Aerial Cable Fiber Optik Single Mode 24 Core G.652 C Type ADSS Cable;meter
+3;AC-ADSS-SM-48C;Jasa Pemasangan Aerial Cable Fiber Optik Single Mode 48 Core G.652 C Type ADSS Cable;meter
+4;AC-ADSS-SM-96C;Jasa Pemasangan Aerial Cable Fiber Optik Single Mode 96 Core G.652 C Type ADSS Cable;meter
+5;AC-ADSS-SM-144C;Jasa Pemasangan Aerial Cable Fiber Optik Single Mode 144 Core G.652 C Type ADSS Cable;meter
+6;AC-ADSS-SM-288C;Jasa Pemasangan Aerial Cable Fiber Optik Single Mode 288 Core G.652 C Type ADSS Cable;meter
+7;JC-OF-SM-12C;Jasa Pemasangan Joint Closure Untuk Fiber Optik Kapasitas 12 Core;pcs
+8;JC-OF-SM-24C;Jasa Pemasangan Joint Closure Untuk Fiber Optik Kapasitas 24 Core;pcs
+9;JC-OF-SM-48C;Jasa Pemasangan Joint Closure Untuk Fiber Optik Kapasitas 48 Core;pcs
+10;JC-OF-SM-96C;Jasa Pemasangan Joint Closure Untuk Fiber Optik Kapasitas 96 Core;pcs
+11;JC-OF-SM-144C;Jasa Pemasangan Joint Closure Untuk Fiber Optik Kapasitas 144 Core;pcs
+12;JC-OF-SM-288C;Jasa Pemasangan Joint Closure Untuk Fiber Optik Kapasitas 288 Core;pcs
+13;OTB-SM-6;Jasa Pemasangan OTB Single Mode kapasitas 12 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+14;OTB-SM-8;Jasa Pemasangan OTB Single Mode kapasitas 12 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+15;OTB-SM-12;Jasa Pemasangan OTB Single Mode kapasitas 12 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+16;OTB-SM-24;Jasa Pemasangan OTB Single Mode kapasitas 24 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+17;OTB-SM-48;Jasa Pemasangan OTB Single Mode kapasitas 48 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+18;OTB-SM-96;Jasa Pemasangan OTB Single Mode kapasitas 96 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+19;OTB-SM-144;Jasa Pemasangan OTB Single Mode kapasitas 144 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+20;OTB-SM-288;Jasa Pemasangan OTB Single Mode kapasitas 288 core, Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+21;PS-1-2-FDT;Jasa pemasangan Passive Splitter 1:2, type modular SC/UPC, for FDT, termasuk pigtail;pcs
+22;PS-1-4-FDT;Jasa pemasangan Passive Splitter 1:4, type modular SC/UPC, for FDT, termasuk pigtail;pcs
+23;PS-1-8-FAT;Jasa pemasangan Passive Splitter 1:8, type modular SC/UPC, for FAT, termasuk pigtail;pcs
+24;PS-1-16-FAT;Jasa pemasangan Passive Splitter 1:16, type modular SC/UPC, for FAT, termasuk pigtail;pcs
+25;FAT-PB-8C-SOLID;Jasa pemasangan FAT type POLE Kap 8 core adaptor SC/UPC terdiri dari 1 Box Spliter (termasuk 1 spliter 1:8), 1 Box beserta Accessories, berikut pelabelan.;pcs
+26;FAT-PB-16C-SOLID;Jasa pemasangan  FAT type POLE Kap 16 core adaptor SC/UPC terdiri dari 2Box Spliter (termasuk 2 spliter 1:8), 1 Box beserta Accessories, berikut pelabelan.;pcs
+27;Base Tray ODC;Jasa pemasangan OTB termasuk terminasi dan penyambungan kabel optik Single mode kap 12 core serta Adapter (SC Connector), pigtail dan protection sleeve pada cassette/box;pcs
+28;FAT-PDSTL-8;Jasa pemasangan FAT ( Pedestal ) kap 8 core termasuk pigtail, berikut space 1 splitter (1:8) dan Pelabelan;pcs
+29;FAT-PDSTL-16;Jasa pemasangan FAT ( Pedestal ) kap 16 core termasuk pigtail, berikut space 1 splitter (1:16) dan Pelabelan;pcs
+30;FDT-POLE-48C;Jasa pemasangan FDT-Pole (Outdoor) With Space For Passive Splitter, Adaptor SC Kapasitas 48 Core, Berikut Pelabelan;pcs
+31;FDT-POLE-96C;Jasa pemasangan FDT-Pole (Outdoor) With Space For Passive Splitter, Adaptor SC Kapasitas 96 Core, Berikut Pelabelan;pcs
+32;FDT-STDG-96C;Jasa pemasangan Kabinet FDT(Outdoor) With Space For Passive Splitter, Adaptor SC Kapasitas 96 Core, Berikut Pelabelan;pcs
+33;FDT-STDG-144C;Jasa pemasangan Kabinet FDT(Outdoor) With Space For Passive Splitter, Adaptor SC Kapasitas 144 Core, Berikut Pelabelan;pcs
+34;FDT-STDG-288C;Jasa pemasangan Kabinet FDT(Outdoor) With Space For Passive Splitter, Adaptor SC Kapasitas 288 Core, Berikut Pelabelan;pcs
+35;NP-6.0-100-1S;"Jasa pemasangan New Pole 6 Meter 2,5"" x 600, Berikut Cat dengan warna identitas Kuning (atas) Biru (Bawah) & Cor Pondasi dengan Kekuatan Tarik 100 Kg";pcs
+36;NP-7.0-140-2S;"Jasa pemasangan New Pole 7 Meter 600 x 3"",200 x 3"" x 100 x 2,5"" , Berikut Cat dengan warna identitas Kuning (atas) Biru (bawah)";pcs
+37;NP-7.0-140-3S;"Jasa pemasangan New Pole 7 Meter 300 x 4"",200 x 3"" x 200 x 2,5"" , Berikut Cat dengan warna identitas Kuning (atas) Biru (bawah) & Cor Pondasi dengan Kekuatan Tarik 140 Kg";pcs
+38;NP-9.0-140-3S;"Jasa pemasangan New Pole 9 Meter 400 x 4"", 300 x 3"", 200 x 2.5"", Berikut Cat dengan warna identitas Kuning (atas) Biru (bawah) & Cor Pondasi dengan Kekuatan Tarik 140 Kg";pcs
+39;NP-CB-7.0-250;Jasa pemasangan New Pole Beton 7 Meter, Berikut Cat dengan warna identitas Kuning (atas) Biru (bawah) & Cor Pondasi dengan Kekuatan Tarik 250 Kg;pcs
+40;NP-CB-9.0-250;Jasa pemasangan New Pole Beton 9 Meter, Berikut Cat dengan warna identitas Kuning (atas) Biru (bawah) & Cor Pondasi dengan Kekuatan Tarik 250 Kg;pcs
+41;PP-CD-IN;Jasa pemasangan Pipe Protection Indoor Cable (Pvc White) High Impact Conduit 20 Mm;meter
+42;PP-CD-OUT;Jasa pemasangan Pipe Protection Outdoor Cable (Pvc Black) High Impact Conduit 20 Mm;meter
+43;HDPE-40-33;Jasa pemasangan Pipa Hdpe 40/33 Mm 1 Pipa Dengan Kedalaman 1,5 Meter dan warna identitas Kuning strip Biru;meter
+44;TT-NP;Jasa pemasangan Temberang Tarik;pcs
+45;GB-0.1-OHM;Jasa pemasangan Grounding 1 titik rod pada FATdengan tahanan maks 3 ohm;pcs
+46;GB-0.2-OHM;Jasa pemasangan Grounding 3 titik rod pada FDT dengan tahanan maks 2 ohm;pcs
+47;GB-0.3-OHM;Jasa pemasangan Grounding 5 titik rod pada FDT dengan tahanan maks 1 ohm;pcs
+81;RP-GALVANIS;Jasa Pemasangan Riser Pipe Untuk Pengamanan Kabel Optik Ke FDT Pole / Titik Naik Ku Diameter 2 Inch Panjang 3 Meter;pcs
+82;ACC-STAINLESS BELT;Jasa Pemasangan Aksesoris Tiang Besi Stainless Belt dan Pengunci;pcs
+83;ACC-SUSPENSION AYUN;Jasa Pemasangan Aksesoris Tiang Besi Suspension Ayun;pcs
+84;ACC-HELLICAL;Jasa Pemasangan Aksesoris Tiang Besi Helycal Cable;pcs
+85;ACC-ANCHORING;Jasa Pemasangan Aksesoris Tiang Besi Penguat Fiber Optik Figure-8;pcs
+86;ACC-Bracket;Jasa Pemasangan Aksesoris Tiang Besi Anchoring/ Bracket A;pcs
+87;ACC-POLESTRAP SPIRAL;Jasa Pemasangan Aksesoris Tiang Besi Polestrap Spiral Untuk Penambatan Dropcore;pcs
+97;PIPE-BRIDGE;"jasa Pemasangan Pipa galvanis dengan ukuran diameter 5"" pada jembatan berikut dengan penyambungan pipa dan cat identitas INTERNUSA GROUP";meter
