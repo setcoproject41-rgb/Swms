@@ -4,262 +4,281 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Warehouse Material Monitoring System</title>
-  <!-- Premium System Font Stack -->
+  <title>SETCO | Warehouse Monitoring System</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons -->
   <script src="lucide.min.js"></script>
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <i data-lucide="package"></i>
-          <span>WH Monitoring</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-view="dashboard">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo-container">
+      <!-- Ganti src ke logo.png jika sudah ada -->
+      <div style="font-size: 2.5rem; color: #fbbf24; font-weight: 800; line-height: 1;">SETCO</div>
+      <div class="logo-sub">Warehouse System</div>
+    </div>
+
+    <ul class="nav-links">
+      <li class="nav-item">
+        <a href="#" class="nav-link active" onclick="switchView('dashboard')">
           <i data-lucide="layout-dashboard"></i>
           <span>Dashboard</span>
-        </button>
-        <button class="nav-item" data-view="inventory">
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" onclick="switchView('inventory')">
           <i data-lucide="boxes"></i>
           <span>Inventory</span>
-        </button>
-        <button class="nav-item" data-view="transactions">
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" onclick="switchView('transactions')">
           <i data-lucide="arrow-left-right"></i>
           <span>Transactions</span>
-        </button>
-        <button class="nav-item" id="btn-settings">
-          <i data-lucide="settings"></i>
-          <span>Sync Settings</span>
-        </button>
-      </nav>
-      <div class="sidebar-footer">
-        <p>&copy; 2026 WH Systems</p>
-      </div>
-    </aside>
+        </a>
+      </li>
+    </ul>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <header class="top-bar">
-        <h1 id="view-title">Dashboard</h1>
-        <div class="actions">
-          <button class="btn btn-primary" id="btn-material-in">
-            <i data-lucide="plus-circle"></i>
-            Material In
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link" onclick="showModal(modalSettings)">
+        <i data-lucide="settings"></i>
+        <span>Sync Settings</span>
+      </a>
+      <div style="padding: 10px; font-size: 10px; color: #475569; text-align: center; margin-top: 10px;">
+        © 2026 SETCO WH Systems
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Dashboard View -->
+    <div id="view-dashboard" class="view">
+      <header>
+        <div>
+          <h1>Warehouse Overview</h1>
+          <p style="color: var(--text-muted)">Real-time status monitoring</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="showModal(modalIn)">
+            <i data-lucide="plus-circle"></i> Material In
           </button>
-          <button class="btn btn-secondary" id="btn-material-out">
-            <i data-lucide="minus-circle"></i>
-            Material Out
+          <button class="btn btn-outline" onclick="showModal(modalOut)">
+            <i data-lucide="minus-circle"></i> Material Out
           </button>
         </div>
       </header>
 
-      <!-- Dashboard View -->
-      <section id="dashboard-view" class="view">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="label">Total Items</span>
-              <div class="icon-box blue"><i data-lucide="package-search"></i></div>
-            </div>
-            <div class="value" id="stat-total-items">0</div>
-            <div class="trend positive">Inventory total</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-blue">
+            <i data-lucide="package"></i>
           </div>
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="label">Total Stock</span>
-              <div class="icon-box indigo"><i data-lucide="database"></i></div>
-            </div>
-            <div class="value" id="stat-total-stock">0</div>
-            <div class="trend">Units across all IDs</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="label">Low Stock Alerts</span>
-              <div class="icon-box orange"><i data-lucide="alert-triangle"></i></div>
-            </div>
-            <div class="value" id="stat-low-stock">0</div>
-            <div class="trend negative">Requires attention</div>
+          <div class="stat-info">
+            <div class="label">Total Item IDs</div>
+            <div class="value" id="total-items">0</div>
           </div>
         </div>
-
-        <div class="dashboard-content">
-          <div class="card recent-activity">
-            <div class="card-header">
-              <h2>Recent Activity</h2>
-              <button class="btn-text">View All</button>
-            </div>
-            <div class="activity-list" id="recent-activity-list">
-              <!-- Populated by JS -->
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-red">
+            <i data-lucide="database"></i>
           </div>
-          <div class="card stock-overview">
-            <div class="card-header">
-              <h2>Fast Moving Items</h2>
-            </div>
-            <div class="chart-placeholder" id="stock-chart">
-              <!-- Chart or summary -->
-            </div>
+          <div class="stat-info">
+            <div class="label">Total Units Stock</div>
+            <div class="value" id="total-stock">0</div>
           </div>
         </div>
-      </section>
+        <div class="stat-card">
+          <div class="stat-icon icon-yellow">
+            <i data-lucide="alert-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <div class="label">Empty Stocks</div>
+            <div class="value" id="low-stock-count">0</div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Inventory View -->
-      <section id="inventory-view" class="view hidden">
-        <div class="table-container card">
+      <div class="dashboard-grid">
+        <div class="card">
           <div class="card-header">
-            <h2>Material Stock</h2>
-            <div class="table-actions">
-              <input type="text" placeholder="Cari Material..." class="search-input" id="inventory-search">
-              <button class="btn btn-secondary" id="btn-import-csv">Bulk Import CSV</button>
-              <button class="btn btn-outline" id="btn-add-item">Add New ID</button>
+            <h3 class="card-title">Recent Activity</h3>
+            <button class="btn btn-outline" style="font-size: 0.75rem" onclick="switchView('transactions')">View
+              All</button>
+          </div>
+          <div id="recent-activity-list">
+            <!-- Activity items go here -->
+            <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+              No recent transactions found
             </div>
           </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Material ID</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Current Stock</th>
-                <th>Unit</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="inventory-table-body">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
         </div>
-      </section>
-
-      <!-- Transactions View -->
-      <section id="transactions-view" class="view hidden">
-        <div class="table-container card">
+        <div class="card">
           <div class="card-header">
-            <h2>Transaction History</h2>
-            <div class="table-actions">
-              <select class="filter-select" id="transaction-type-filter">
-                <option value="all">All Types</option>
-                <option value="in">Material In</option>
-                <option value="out">Material Out</option>
-              </select>
+            <h3 class="card-title">Fast Moving Items</h3>
+          </div>
+          <div id="fast-moving-list">
+            <!-- Top items go here -->
+            <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+              Calculating movements...
             </div>
           </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Type</th>
-                <th>Material ID</th>
-                <th>Material Name</th>
-                <th>Quantity</th>
-                <th>By Person</th>
-              </tr>
-            </thead>
-            <tbody id="transactions-table-body">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
+
+    <!-- Inventory View -->
+    <div id="view-inventory" class="view" style="display: none;">
+      <header>
+        <h1>Inventory Stock</h1>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="system.importFromCSV()">Bulk Import CSV</button>
+          <button class="btn btn-primary" id="btn-add-item">Add New ID</button>
+        </div>
+      </header>
+
+      <div class="card">
+        <div class="table-actions" style="margin-bottom: 1.5rem;">
+          <input type="text" placeholder="Search materials..." class="search-input" id="inventory-search"
+            style="width: 100%; max-width: 400px; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border);">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID Material</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Current Stock</th>
+              <th>Unit</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body">
+            <!-- Rows go here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Transactions View -->
+    <div id="view-transactions" class="view" style="display: none;">
+      <header>
+        <h1>Transaction Logs</h1>
+      </header>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Material</th>
+              <th>Type</th>
+              <th>Qty</th>
+              <th>Person</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-table-body">
+            <!-- Rows go here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modals (Add, In, Out, Settings) -->
+  <!-- Modal Add Material -->
+  <div id="modal-add" class="modal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 1.5rem">Add New Material</h2>
+      <form id="form-add">
+        <div style="margin-bottom: 1rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">ID Material</label>
+          <input type="text" id="add-id" required
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+        </div>
+        <div style="margin-bottom: 1rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Name / Description</label>
+          <input type="text" id="add-name" required
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+        </div>
+        <div style="margin-bottom: 1rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Category</label>
+          <select id="add-category"
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)" required>
+            <option value="Cable">Cable</option>
+            <option value="Pole">Pole</option>
+            <option value="FAT/OTB">FAT/OTB</option>
+            <option value="Closure">Closure</option>
+            <option value="Accessories">Accessories</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 1.5rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Unit</label>
+          <input type="text" id="add-unit" placeholder="pcs, meter, etc" required
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end">
+          <button type="button" class="btn btn-outline" onclick="closeModal(modalAdd)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Material</button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <!-- Modals -->
-  <div id="modal-backdrop" class="modal-backdrop hidden"></div>
-
-  <!-- Add Material Modal -->
-  <div id="modal-add-item" class="modal hidden">
-    <div class="modal-header">
-      <h2>Add New Material</h2>
-      <button class="btn-close" id="close-add-item">&times;</button>
+  <!-- Modal In/Out (Dynamic) -->
+  <div id="modal-transaction" class="modal">
+    <div class="modal-content">
+      <h2 id="trans-modal-title" style="margin-bottom: 1.5rem">Material Transaction</h2>
+      <form id="form-trans">
+        <input type="hidden" id="trans-type">
+        <div style="margin-bottom: 1rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Select Material</label>
+          <select id="trans-material"
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)"
+            required></select>
+        </div>
+        <div style="margin-bottom: 1rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Quantity</label>
+          <input type="number" id="trans-qty" required
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+        </div>
+        <div style="margin-bottom: 1.5rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Person/PIC Name</label>
+          <input type="text" id="trans-person" required
+            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end">
+          <button type="button" class="btn btn-outline" onclick="closeModal(modalTrans)">Cancel</button>
+          <button type="submit" class="btn btn-primary">Proceed</button>
+        </div>
+      </form>
     </div>
-    <form id="form-add-item">
-      <div class="form-group">
-        <label for="new-id">Material ID</label>
-        <input type="text" id="new-id" required placeholder="e.g. MAT-001">
-      </div>
-      <div class="form-group">
-        <label for="new-name">Material Name</label>
-        <input type="text" id="new-name" required placeholder="e.g. Fiber Cable 24 Core">
-      </div>
-      <div class="form-group">
-        <label for="new-category">Category</label>
-        <input type="text" id="new-category" placeholder="e.g. Cable">
-      </div>
-      <div class="form-group">
-        <label for="new-unit">Unit</label>
-        <input type="text" id="new-unit" placeholder="e.g. Meters, Pcs" required>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="cancel-add-item">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Material</button>
-      </div>
-    </form>
   </div>
 
-  <!-- Transaction Modal (In/Out) -->
-  <div id="modal-transaction" class="modal hidden">
-    <div class="modal-header">
-      <h2 id="transaction-modal-title">Record Transaction</h2>
-      <button class="btn-close" id="close-transaction">&times;</button>
+  <!-- Modal Settings -->
+  <div id="modal-settings" class="modal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 1.5rem">Supabase Sync Settings</h2>
+      <div style="margin-bottom: 1rem">
+        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Supabase URL</label>
+        <input type="text" id="sb-url" placeholder="https://xyz.supabase.co"
+          style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+      </div>
+      <div style="margin-bottom: 1.5rem">
+        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Anon Key</label>
+        <input type="password" id="sb-key"
+          style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: flex-end">
+        <button type="button" class="btn btn-outline" onclick="closeModal(modalSettings)">Close</button>
+        <button type="button" class="btn btn-primary" onclick="saveSettings()">Save & Sync</button>
+      </div>
     </div>
-    <form id="form-transaction">
-      <input type="hidden" id="transaction-type">
-      <div class="form-group">
-        <label for="trans-material-id">Material</label>
-        <select id="trans-material-id" required>
-          <!-- Populated by JS -->
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="trans-quantity">Quantity</label>
-        <input type="number" id="trans-quantity" min="1" step="any" required>
-      </div>
-      <div class="form-group">
-        <label for="trans-person">Person Name</label>
-        <input type="text" id="trans-person" required placeholder="Who is handling this?">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="cancel-transaction">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="btn-submit-transaction">Confirm</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="modal-settings" class="modal hidden">
-    <div class="modal-header">
-      <h2>Supabase Cloud Sync</h2>
-      <button class="btn-close" id="close-settings">&times;</button>
-    </div>
-    <form id="form-settings">
-      <p style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-        Hubungkan dashboard ini ke database cloud untuk akses via HP dan Bot Telegram.
-      </p>
-      <div class="form-group">
-        <label for="sb-url">Supabase URL</label>
-        <input type="text" id="sb-url" placeholder="https://xyz.supabase.co">
-      </div>
-      <div class="form-group">
-        <label for="sb-key">Supabase Anon Key</label>
-        <input type="password" id="sb-key" placeholder="API Key Anon">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="btn-disconnect">Mode Lokal</button>
-        <button type="submit" class="btn btn-primary">Simpan & Hubungkan</button>
-      </div>
-    </form>
   </div>
 
   <script src="app.js"></script>
+  <script>lucide.createIcons();</script>
 </body>
 
 </html>
