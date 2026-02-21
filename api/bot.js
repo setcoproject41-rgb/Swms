@@ -148,5 +148,10 @@ async function processTransaction(chatId, text, type) {
     msg += `📦 \`${mat.name}\`\n`;
     msg += `� Stok Baru: *${newStock} ${mat.unit}*`;
 
-    return await bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
+    return await bot.sendMessage(chatId, msg, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [[{ text: '🔄 Kembali ke Menu Utama', callback_data: 'main_menu' }]]
+        }
+    });
 }
