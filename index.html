@@ -16,26 +16,25 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="logo-container">
-      <!-- Ganti src ke logo.png jika sudah ada -->
-      <div style="font-size: 2.5rem; color: #fbbf24; font-weight: 800; line-height: 1;">SETCO</div>
-      <div class="logo-sub">Warehouse System</div>
+      <img src="logo.png" alt="SETCO Logo" style="width: 100%; max-width: 180px; margin-bottom: 10px;">
+      <div class="logo-sub" style="color: #fbbf24; font-weight: 700;">Warehouse System</div>
     </div>
 
     <ul class="nav-links">
-      <li class="nav-item">
-        <a href="#" class="nav-link active" onclick="switchView('dashboard')">
+      <li class="nav-item" data-view="dashboard">
+        <a href="#" class="nav-link active">
           <i data-lucide="layout-dashboard"></i>
           <span>Dashboard</span>
         </a>
       </li>
-      <li class="nav-item">
-        <a href="#" class="nav-link" onclick="switchView('inventory')">
+      <li class="nav-item" data-view="inventory">
+        <a href="#" class="nav-link">
           <i data-lucide="boxes"></i>
           <span>Inventory</span>
         </a>
       </li>
-      <li class="nav-item">
-        <a href="#" class="nav-link" onclick="switchView('transactions')">
+      <li class="nav-item" data-view="transactions">
+        <a href="#" class="nav-link">
           <i data-lucide="arrow-left-right"></i>
           <span>Transactions</span>
         </a>
@@ -43,7 +42,7 @@
     </ul>
 
     <div class="sidebar-footer">
-      <a href="#" class="nav-link" onclick="showModal(modalSettings)">
+      <a href="#" class="nav-link" id="btn-settings-nav">
         <i data-lucide="settings"></i>
         <span>Sync Settings</span>
       </a>
@@ -56,17 +55,17 @@
   <!-- Main Content -->
   <main class="main-content">
     <!-- Dashboard View -->
-    <div id="view-dashboard" class="view">
+    <div id="view-dashboard" class="view-content">
       <header>
         <div>
           <h1>Warehouse Overview</h1>
           <p style="color: var(--text-muted)">Real-time status monitoring</p>
         </div>
         <div class="header-actions">
-          <button class="btn btn-primary" onclick="showModal(modalIn)">
+          <button class="btn btn-primary" id="btn-material-in">
             <i data-lucide="plus-circle"></i> Material In
           </button>
-          <button class="btn btn-outline" onclick="showModal(modalOut)">
+          <button class="btn btn-outline" id="btn-material-out">
             <i data-lucide="minus-circle"></i> Material Out
           </button>
         </div>
@@ -79,7 +78,7 @@
           </div>
           <div class="stat-info">
             <div class="label">Total Item IDs</div>
-            <div class="value" id="total-items">0</div>
+            <div class="value" id="stat-total-items">0</div>
           </div>
         </div>
         <div class="stat-card">
@@ -88,7 +87,7 @@
           </div>
           <div class="stat-info">
             <div class="label">Total Units Stock</div>
-            <div class="value" id="total-stock">0</div>
+            <div class="value" id="stat-total-stock">0</div>
           </div>
         </div>
         <div class="stat-card">
@@ -97,7 +96,7 @@
           </div>
           <div class="stat-info">
             <div class="label">Empty Stocks</div>
-            <div class="value" id="low-stock-count">0</div>
+            <div class="value" id="stat-low-stock">0</div>
           </div>
         </div>
       </div>
@@ -106,7 +105,7 @@
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">Recent Activity</h3>
-            <button class="btn btn-outline" style="font-size: 0.75rem" onclick="switchView('transactions')">View
+            <button class="btn btn-outline" style="font-size: 0.75rem" id="btn-view-all-activity">View
               All</button>
           </div>
           <div id="recent-activity-list">
@@ -131,11 +130,11 @@
     </div>
 
     <!-- Inventory View -->
-    <div id="view-inventory" class="view" style="display: none;">
+    <div id="view-inventory" class="view-content" style="display: none;">
       <header>
         <h1>Inventory Stock</h1>
         <div class="header-actions">
-          <button class="btn btn-secondary" onclick="system.importFromCSV()">Bulk Import CSV</button>
+          <button class="btn btn-secondary" id="btn-import-csv">Bulk Import CSV</button>
           <button class="btn btn-primary" id="btn-add-item">Add New ID</button>
         </div>
       </header>
@@ -153,6 +152,7 @@
               <th>Category</th>
               <th>Current Stock</th>
               <th>Unit</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="inventory-table-body">
@@ -163,17 +163,24 @@
     </div>
 
     <!-- Transactions View -->
-    <div id="view-transactions" class="view" style="display: none;">
+    <div id="view-transactions" class="view-content" style="display: none;">
       <header>
         <h1>Transaction Logs</h1>
+        <select id="transaction-type-filter"
+          style="padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border);">
+          <option value="all">All Transactions</option>
+          <option value="in">Material In</option>
+          <option value="out">Material Out</option>
+        </select>
       </header>
       <div class="card">
         <table>
           <thead>
             <tr>
               <th>Date</th>
-              <th>Material</th>
               <th>Type</th>
+              <th>ID</th>
+              <th>Material Name</th>
               <th>Qty</th>
               <th>Person</th>
             </tr>
@@ -186,26 +193,25 @@
     </div>
   </main>
 
+  <div id="modal-backdrop" class="modal hidden"></div>
+
   <!-- Modals (Add, In, Out, Settings) -->
   <!-- Modal Add Material -->
-  <div id="modal-add" class="modal">
+  <div id="modal-add-item" class="modal hidden">
     <div class="modal-content">
       <h2 style="margin-bottom: 1.5rem">Add New Material</h2>
-      <form id="form-add">
+      <form id="form-add-item">
         <div style="margin-bottom: 1rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">ID Material</label>
-          <input type="text" id="add-id" required
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+          <input type="text" id="new-id" required style="width: 100%; padding: 0.75rem; border-radius: 8px;">
         </div>
         <div style="margin-bottom: 1rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Name / Description</label>
-          <input type="text" id="add-name" required
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+          <input type="text" id="new-name" required style="width: 100%; padding: 0.75rem; border-radius: 8px;">
         </div>
         <div style="margin-bottom: 1rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Category</label>
-          <select id="add-category"
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)" required>
+          <select id="new-category" style="width: 100%; padding: 0.75rem; border-radius: 8px;" required>
             <option value="Cable">Cable</option>
             <option value="Pole">Pole</option>
             <option value="FAT/OTB">FAT/OTB</option>
@@ -215,11 +221,11 @@
         </div>
         <div style="margin-bottom: 1.5rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Unit</label>
-          <input type="text" id="add-unit" placeholder="pcs, meter, etc" required
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+          <input type="text" id="new-unit" placeholder="pcs, meter, etc" required
+            style="width: 100%; padding: 0.75rem; border-radius: 8px;">
         </div>
         <div style="display: flex; gap: 1rem; justify-content: flex-end">
-          <button type="button" class="btn btn-outline" onclick="closeModal(modalAdd)">Cancel</button>
+          <button type="button" class="btn btn-outline" id="cancel-add-item">Cancel</button>
           <button type="submit" class="btn btn-primary">Save Material</button>
         </div>
       </form>
@@ -227,53 +233,50 @@
   </div>
 
   <!-- Modal In/Out (Dynamic) -->
-  <div id="modal-transaction" class="modal">
+  <div id="modal-transaction" class="modal hidden">
     <div class="modal-content">
-      <h2 id="trans-modal-title" style="margin-bottom: 1.5rem">Material Transaction</h2>
-      <form id="form-trans">
-        <input type="hidden" id="trans-type">
+      <h2 id="transaction-modal-title" style="margin-bottom: 1.5rem">Material Transaction</h2>
+      <form id="form-transaction">
+        <input type="hidden" id="transaction-type">
         <div style="margin-bottom: 1rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Select Material</label>
-          <select id="trans-material"
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)"
-            required></select>
+          <select id="trans-material-id" style="width: 100%; padding: 0.75rem; border-radius: 8px;" required></select>
         </div>
         <div style="margin-bottom: 1rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Quantity</label>
-          <input type="number" id="trans-qty" required
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+          <input type="number" id="trans-quantity" required style="width: 100%; padding: 0.75rem; border-radius: 8px;">
         </div>
         <div style="margin-bottom: 1.5rem">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Person/PIC Name</label>
-          <input type="text" id="trans-person" required
-            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
+          <input type="text" id="trans-person" required style="width: 100%; padding: 0.75rem; border-radius: 8px;">
         </div>
         <div style="display: flex; gap: 1rem; justify-content: flex-end">
-          <button type="button" class="btn btn-outline" onclick="closeModal(modalTrans)">Cancel</button>
-          <button type="submit" class="btn btn-primary">Proceed</button>
+          <button type="button" class="btn btn-outline" id="cancel-transaction">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-transaction">Proceed</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Modal Settings -->
-  <div id="modal-settings" class="modal">
+  <div id="modal-settings" class="modal hidden">
     <div class="modal-content">
       <h2 style="margin-bottom: 1.5rem">Supabase Sync Settings</h2>
-      <div style="margin-bottom: 1rem">
-        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Supabase URL</label>
-        <input type="text" id="sb-url" placeholder="https://xyz.supabase.co"
-          style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
-      </div>
-      <div style="margin-bottom: 1.5rem">
-        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Anon Key</label>
-        <input type="password" id="sb-key"
-          style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border)">
-      </div>
-      <div style="display: flex; gap: 1rem; justify-content: flex-end">
-        <button type="button" class="btn btn-outline" onclick="closeModal(modalSettings)">Close</button>
-        <button type="button" class="btn btn-primary" onclick="saveSettings()">Save & Sync</button>
-      </div>
+      <form id="form-settings">
+        <div style="margin-bottom: 1rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Supabase URL</label>
+          <input type="text" id="sb-url" placeholder="https://xyz.supabase.co"
+            style="width: 100%; padding: 0.75rem; border-radius: 8px;">
+        </div>
+        <div style="margin-bottom: 1.5rem">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem">Anon Key</label>
+          <input type="password" id="sb-key" style="width: 100%; padding: 0.75rem; border-radius: 8px;">
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end">
+          <button type="button" class="btn btn-outline" id="btn-disconnect">Mode Lokal</button>
+          <button type="submit" class="btn btn-primary">Save & Sync</button>
+        </div>
+      </form>
     </div>
   </div>
 
