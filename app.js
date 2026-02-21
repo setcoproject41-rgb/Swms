@@ -28,14 +28,18 @@ class WarehouseSystem {
     }
 
     async loadData() {
-        if (this.isOnline) {
-            const { data: mats } = await this.client.from('materials').select('*').order('id');
-            const { data: trans } = await this.client.from('transactions').select('*').order('created_at', { ascending: false }).limit(50);
-            this.inventory = mats || [];
-            this.transactions = trans || [];
-        } else {
-            this.inventory = JSON.parse(localStorage.getItem('wh_inventory')) || [];
-            this.transactions = JSON.parse(localStorage.getItem('wh_transactions')) || [];
+        try {
+            if (this.isOnline) {
+                const { data: mats } = await this.client.from('materials').select('*').order('id');
+                const { data: trans } = await this.client.from('transactions').select('*').order('created_at', { ascending: false }).limit(50);
+                this.inventory = mats || [];
+                this.transactions = trans || [];
+            } else {
+                this.inventory = JSON.parse(localStorage.getItem('wh_inventory')) || [];
+                this.transactions = JSON.parse(localStorage.getItem('wh_transactions')) || [];
+            }
+        } catch (err) {
+            console.error('Error loading data:', err);
         }
         renderData();
     }
@@ -61,9 +65,8 @@ class WarehouseSystem {
             { id: 'AC-ADSS-SM-12C', name: 'Aerial Cable Fiber Optik 12 Core', category: 'Cable', stock: 0, unit: 'meter' },
             { id: 'AC-ADSS-SM-24C', name: 'Aerial Cable Fiber Optik 24 Core', category: 'Cable', stock: 0, unit: 'meter' },
             { id: 'JC-OF-SM-24C', name: 'Joint Closure 24 Core', category: 'Closure', stock: 0, unit: 'pcs' },
-            { id: 'FAT-PB-8C-SOLID', name: 'FAT Pole 8 Core', category: 'FAT', stock: 0, unit: 'pcs' },
+            { id: 'FAT-PB-8C-SOLID', name: 'FAT Pole 8 Core', category: 'FAT/OTB', stock: 0, unit: 'pcs' },
             { id: 'NP-7.0-140-2S', name: 'New Pole 7 Meter', category: 'Pole', stock: 0, unit: 'pcs' }
-            // ... data lainnya bisa diinput manual via dashboard
         ];
 
         for (const item of defaultItems) {
@@ -72,6 +75,7 @@ class WarehouseSystem {
             }
         }
         alert('Data dasar berhasil diimpor!');
+        await this.loadData();
     }
 
     async recordTransaction(type, materialId, quantity, person) {
@@ -84,12 +88,10 @@ class WarehouseSystem {
             return false;
         }
 
-        const newStock = type === 'in' ? material.stock + qty : material.stock - qty;
+        const newStock = type === 'in' ? (parseFloat(material.stock) || 0) + qty : material.stock - qty;
 
         if (this.isOnline) {
-            // Update stock in materials table
             await this.client.from('materials').update({ stock: newStock }).eq('id', materialId);
-            // Record transaction
             await this.client.from('transactions').insert([{
                 material_id: materialId,
                 type,
@@ -100,10 +102,9 @@ class WarehouseSystem {
             material.stock = newStock;
             const transaction = {
                 id: Date.now(),
-                date: new Date().toISOString(),
+                created_at: new Date().toISOString(),
                 type,
-                materialId,
-                materialName: material.name,
+                material_id: materialId,
                 quantity: qty,
                 person
             };
@@ -125,123 +126,131 @@ class WarehouseSystem {
         }
         await this.loadData();
     }
-
-    getStats() {
-        return {
-            totalItems: this.inventory.length,
-            totalStock: this.inventory.reduce((acc, curr) => acc + (parseFloat(curr.stock) || 0), 0),
-            lowStock: this.inventory.filter(m => m.stock < 10).length
-        };
-    }
 }
 
 const system = new WarehouseSystem();
 
-// UI Elements
+// UI Elements & State
 const views = {
-    dashboard: document.getElementById('dashboard-view'),
-    inventory: document.getElementById('inventory-view'),
-    transactions: document.getElementById('transactions-view')
+    dashboard: document.getElementById('view-dashboard'),
+    inventory: document.getElementById('view-inventory'),
+    transactions: document.getElementById('view-transactions')
 };
 
-const navItems = document.querySelectorAll('.nav-item');
-const viewTitle = document.getElementById('view-title');
-
-// Modals
 const modalBackdrop = document.getElementById('modal-backdrop');
 const modalAdd = document.getElementById('modal-add-item');
 const modalTrans = document.getElementById('modal-transaction');
 const modalSettings = document.getElementById('modal-settings');
 
 // Navigation
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const viewName = item.dataset.view;
-        if (viewName) switchView(viewName);
+function switchView(viewName) {
+    Object.keys(views).forEach(v => {
+        if (views[v]) views[v].style.display = 'none';
+        const nav = document.querySelector(`.nav-item[data-view="${v}"] .nav-link`);
+        if (nav) nav.classList.remove('active');
+    });
+
+    if (views[viewName]) {
+        if (viewName === 'dashboard') views[viewName].style.display = 'block';
+        else views[viewName].style.display = 'block';
+    }
+
+    const activeNav = document.querySelector(`.nav-item[data-view="${viewName}"] .nav-link`);
+    if (activeNav) activeNav.classList.add('active');
+
+    if (viewName === 'transactions') renderTransactions();
+    if (viewName === 'dashboard') renderData();
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const view = item.dataset.view;
+        if (view) switchView(view);
     });
 });
 
-function switchView(viewName) {
-    Object.keys(views).forEach(v => views[v].classList.add('hidden'));
-    views[viewName].classList.remove('hidden');
-    navItems.forEach(nav => nav.classList.remove('active'));
-    const activeNav = document.querySelector(`[data-view="${viewName}"]`);
-    if (activeNav) activeNav.classList.add('active');
-    viewTitle.textContent = viewName.charAt(0).toUpperCase() + viewName.slice(1);
+document.getElementById('btn-view-all-activity')?.addEventListener('click', () => switchView('transactions'));
+
+// Modal Helpers
+function showModal(modal) {
+    modalBackdrop.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    modalBackdrop.style.display = 'flex';
 }
 
-// Rendering
+function hideModals() {
+    modalBackdrop.classList.add('hidden');
+    [modalAdd, modalTrans, modalSettings].forEach(m => {
+        m.classList.add('hidden');
+        m.style.display = 'none';
+    });
+    modalBackdrop.style.display = 'none';
+}
+
+modalBackdrop.addEventListener('click', hideModals);
+document.getElementById('cancel-add-item')?.addEventListener('click', hideModals);
+document.getElementById('cancel-transaction')?.addEventListener('click', hideModals);
+document.getElementById('btn-settings-nav')?.addEventListener('click', () => {
+    document.getElementById('sb-url').value = system.config.url;
+    document.getElementById('sb-key').value = system.config.key;
+    showModal(modalSettings);
+});
+
+// UI Actions
+document.getElementById('btn-material-in')?.addEventListener('click', () => {
+    document.getElementById('transaction-modal-title').textContent = 'Material Masuk';
+    document.getElementById('transaction-type').value = 'in';
+    document.getElementById('btn-submit-transaction').textContent = 'Terima Barang';
+    renderMaterialSelect();
+    showModal(modalTrans);
+});
+
+document.getElementById('btn-material-out')?.addEventListener('click', () => {
+    document.getElementById('transaction-modal-title').textContent = 'Material Keluar';
+    document.getElementById('transaction-type').value = 'out';
+    document.getElementById('btn-submit-transaction').textContent = 'Keluarkan Barang';
+    renderMaterialSelect();
+    showModal(modalTrans);
+});
+
+document.getElementById('btn-add-item')?.addEventListener('click', () => showModal(modalAdd));
+document.getElementById('btn-import-csv')?.addEventListener('click', () => system.importFromCSV());
+
+// Rendering Logic
 function renderData() {
-    updateStats();
-    renderInventory();
     // Stats
     document.getElementById('stat-total-items').textContent = system.inventory.length;
     document.getElementById('stat-total-stock').textContent = system.inventory.reduce((acc, cur) => acc + (parseFloat(cur.stock) || 0), 0).toLocaleString();
     document.getElementById('stat-low-stock').textContent = system.inventory.filter(m => m.stock <= 0).length;
 
-    // Recent Activity (Dashboard)
-    const activityList = document.getElementById('recent-activity-list');
-    activityList.innerHTML = '';
-    system.transactions.slice(0, 5).forEach(tr => {
-        const mat = system.inventory.find(m => m.id === tr.material_id);
-        const div = document.createElement('div');
-        div.className = 'activity-item';
-        div.style = 'display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border); align-items: center;';
+    renderActivity();
+    renderInventory();
+    renderFastMoving();
 
-        const isOut = tr.type === 'out';
-        div.innerHTML = `
-            <div style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${isOut ? '#fee2e2' : '#dcfce7'}; color: ${isOut ? '#ef4444' : '#22c55e'}">
-                <i data-lucide="${isOut ? 'arrow-up-right' : 'arrow-down-left'}"></i>
-            </div>
-            <div style="flex-grow: 1">
-                <div style="font-weight: 600; font-size: 0.9rem">${tr.person} <span style="font-weight: 400; color: var(--text-muted)">${isOut ? 'recorded out' : 'recorded in'}</span></div>
-                <div style="font-size: 0.75rem; color: var(--text-muted)">${mat ? mat.name : tr.material_id} (${tr.quantity} units)</div>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted)">${new Date(tr.created_at || tr.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-        `;
-        activityList.appendChild(div);
-    });
+    if (window.lucide) lucide.createIcons();
+}
 
-    // Fast Moving Items (Mock logic based on frequency)
-    const fastMovingList = document.getElementById('fast-moving-list');
-    fastMovingList.innerHTML = '';
-    const counts = {};
-    system.transactions.forEach(tr => counts[tr.material_id] = (counts[tr.material_id] || 0) + 1);
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+function renderInventory() {
+    const tableBody = document.getElementById('inventory-table-body');
+    if (!tableBody) return;
 
-    sorted.forEach(([id, count]) => {
-        const mat = system.inventory.find(m => m.id === id);
-        if (!mat) return;
-        const div = document.createElement('div');
-        div.style = 'padding: 0.75rem; border-radius: 12px; background: #f8fafc; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;';
-        div.innerHTML = `
-            <div>
-                <div style="font-weight: 600; font-size: 0.85rem">${mat.id}</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted)">${mat.name}</div>
-            </div>
-            <div class="badge badge-in">${count}x trans</div>
-        `;
-        fastMovingList.appendChild(div);
-    });
-
-    // Inventory Table
-    const inventoryTableBody = document.getElementById('inventory-table-body');
-    const search = document.getElementById('inventory-search').value.toLowerCase();
-
-    const filteredInventory = system.inventory.filter(m =>
+    const search = document.getElementById('inventory-search')?.value.toLowerCase() || '';
+    const filtered = system.inventory.filter(m =>
         m.name.toLowerCase().includes(search) || m.id.toLowerCase().includes(search)
     );
 
-    inventoryTableBody.innerHTML = filteredInventory.map(m => `
+    tableBody.innerHTML = filtered.map(m => `
         <tr>
-            <td><strong>${m.id}</strong></td>
+            <td style="font-weight:600; color:var(--primary)">${m.id}</td>
             <td>${m.name}</td>
-            <td><span class="status-badge" style="background: #f1f5f9; color: #475569;">${m.category}</span></td>
-            <td><span class="${m.stock < 10 ? 'trend negative' : ''}">${m.stock}</span></td>
-            <td>${m.unit}</td>
+            <td><span class="badge" style="background:#f1f5f9; color:#475569">${m.category}</span></td>
+            <td style="font-weight:700; color:${m.stock <= 0 ? '#ef4444' : 'inherit'}">${m.stock}</td>
+            <td style="color:var(--text-muted)">${m.unit}</td>
             <td>
-                <button class="btn btn-sm btn-danger" onclick="deleteItem('${m.id}')">
-                    <i data-lucide="trash-2" style="width: 14px;"></i>
+                <button class="btn" style="padding:5px; color:#ef4444" onclick="deleteItem('${m.id}')">
+                    <i data-lucide="trash-2"></i>
                 </button>
             </td>
         </tr>
@@ -250,132 +259,123 @@ function renderData() {
 
 function renderTransactions() {
     const tableBody = document.getElementById('transactions-table-body');
-    const filterSelect = document.getElementById('transaction-type-filter');
-    if (!filterSelect) return;
+    if (!tableBody) return;
 
-    const filter = filterSelect.value;
-    const filtered = filter === 'all'
-        ? system.transactions
-        : system.transactions.filter(t => t.type === filter);
+    const filter = document.getElementById('transaction-type-filter')?.value || 'all';
+    const filtered = filter === 'all' ? system.transactions : system.transactions.filter(t => t.type === filter);
 
     tableBody.innerHTML = filtered.map(t => {
-        // Handle Supabase field names if they differ
-        const mName = t.material_name || t.materialName || (system.inventory.find(m => m.id === t.material_id)?.name);
-        const mId = t.material_id || t.materialId;
-        const date = t.created_at || t.date;
-
+        const mat = system.inventory.find(m => m.id === t.material_id);
+        const name = mat ? mat.name : (t.material_name || t.materialName || '-');
         return `
             <tr>
-                <td>${new Date(date).toLocaleString()}</td>
-                <td><span class="status-badge badge-${t.type}">${t.type.toUpperCase()}</span></td>
-                <td>${mId}</td>
-                <td>${mName}</td>
-                <td>${t.quantity}</td>
+                <td style="font-size:0.85rem; color:var(--text-muted)">${new Date(t.created_at).toLocaleString()}</td>
+                <td><span class="badge ${t.type === 'in' ? 'badge-in' : 'badge-out'}">${t.type.toUpperCase()}</span></td>
+                <td style="font-weight:600">${t.material_id}</td>
+                <td>${name}</td>
+                <td style="font-weight:600">${t.quantity}</td>
                 <td>${t.person}</td>
             </tr>
         `;
     }).join('');
+    if (window.lucide) lucide.createIcons();
 }
 
 function renderActivity() {
     const list = document.getElementById('recent-activity-list');
-    const recent = system.transactions.slice(0, 5);
+    if (!list) return;
 
-    if (recent.length === 0) {
-        list.innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--text-muted);">Belum ada aktivitas.</p>';
+    if (system.transactions.length === 0) {
+        list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No recent transactions found</div>';
         return;
     }
 
-    list.innerHTML = recent.map(t => {
-        const mName = t.material_name || t.materialName || (system.inventory.find(m => m.id === t.material_id)?.name);
-        const mId = t.material_id || t.materialId;
-        const date = t.created_at || t.date;
-
+    list.innerHTML = system.transactions.slice(0, 5).map(tr => {
+        const mat = system.inventory.find(m => m.id === tr.material_id);
+        const isOut = tr.type === 'out';
         return `
-        <div class="activity-item">
-            <div class="activity-icon ${t.type === 'in' ? 'badge-in' : 'badge-out'}">
-                <i data-lucide="${t.type === 'in' ? 'arrow-down-left' : 'arrow-up-right'}" style="width: 16px;"></i>
+            <div style="display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border); align-items: center;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${isOut ? '#fee2e2' : '#dcfce7'}; color: ${isOut ? '#ef4444' : '#22c55e'}">
+                    <i data-lucide="${isOut ? 'arrow-up-right' : 'arrow-down-left'}"></i>
+                </div>
+                <div style="flex-grow: 1">
+                    <div style="font-weight: 600; font-size: 0.9rem">${tr.person} <span style="font-weight: 400; color: var(--text-muted)">${isOut ? 'recorded out' : 'recorded in'}</span></div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted)">${mat ? mat.name : tr.material_id} (${tr.quantity} units)</div>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted)">${formatTimeAgo(new Date(tr.created_at))}</div>
             </div>
-            <div class="activity-info">
-                <div class="activity-title">${t.person} mencatat material ${t.type === 'in' ? 'masuk' : 'keluar'}</div>
-                <div class="activity-details">${t.quantity} unit ${mName} (${mId})</div>
+        `;
+    }).join('');
+}
+
+function renderFastMoving() {
+    const list = document.getElementById('fast-moving-list');
+    if (!list) return;
+
+    const counts = {};
+    system.transactions.forEach(tr => counts[tr.material_id] = (counts[tr.material_id] || 0) + 1);
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+    if (sorted.length === 0) {
+        list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No data yet</div>';
+        return;
+    }
+
+    list.innerHTML = sorted.map(([id, count]) => {
+        const mat = system.inventory.find(m => m.id === id);
+        if (!mat) return '';
+        return `
+            <div style="padding: 0.75rem; border-radius: 12px; background: #f8fafc; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600; font-size: 0.85rem">${mat.id}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted)">${mat.name}</div>
+                </div>
+                <div class="badge badge-in">${count}x trans</div>
             </div>
-            <div class="activity-time">${formatTimeAgo(new Date(date))}</div>
-        </div>
-    `}).join('');
-    lucide.createIcons();
+        `;
+    }).join('');
 }
 
 function renderMaterialSelect() {
     const select = document.getElementById('trans-material-id');
+    if (!select) return;
     select.innerHTML = '<option value="" disabled selected>Pilih Material</option>' +
-        system.inventory.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit} sisa)</option>`).join('');
+        system.inventory.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} sisa)</option>`).join('');
 }
 
 function formatTimeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
-    if (seconds < 60) return 'Baru saja';
+    if (seconds < 60) return 'Just now';
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m lalu`;
+    if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}j lalu`;
+    if (hours < 24) return `${hours}h ago`;
     return date.toLocaleDateString();
 }
 
-// Modal Handlers
-function showModal(modal) {
-    modalBackdrop.classList.remove('hidden');
-    modal.classList.remove('hidden');
-}
+// Global Actions
+window.deleteItem = async (id) => {
+    if (confirm('Hapus material ini?')) {
+        await system.deleteMaterial(id);
+    }
+};
 
-function hideModals() {
-    modalBackdrop.classList.add('hidden');
-    const modals = [modalAdd, modalTrans, modalSettings];
-    modals.forEach(m => m.classList.add('hidden'));
-}
-
-document.getElementById('btn-add-item').addEventListener('click', () => showModal(modalAdd));
-document.getElementById('btn-import-csv').addEventListener('click', () => system.importFromCSV());
-document.getElementById('btn-settings').addEventListener('click', () => {
-    document.getElementById('sb-url').value = system.config.url;
-    document.getElementById('sb-key').value = system.config.key;
-    showModal(modalSettings);
-});
-
-document.getElementById('btn-material-in').addEventListener('click', () => {
-    document.getElementById('transaction-modal-title').textContent = 'Catat Material Masuk';
-    document.getElementById('transaction-type').value = 'in';
-    document.getElementById('btn-submit-transaction').textContent = 'Terima Barang';
-    showModal(modalTrans);
-});
-document.getElementById('btn-material-out').addEventListener('click', () => {
-    document.getElementById('transaction-modal-title').textContent = 'Catat Material Keluar';
-    document.getElementById('transaction-type').value = 'out';
-    document.getElementById('btn-submit-transaction').textContent = 'Keluarkan Barang';
-    showModal(modalTrans);
-});
-
-[modalBackdrop, document.getElementById('close-add-item'), document.getElementById('close-transaction'), document.getElementById('close-settings'), document.getElementById('cancel-add-item'), document.getElementById('cancel-transaction')].forEach(el => {
-    el?.addEventListener('click', hideModals);
-});
-
-// Form Submissions
-document.getElementById('form-add-item').addEventListener('submit', async (e) => {
+// Form Handlers
+document.getElementById('form-add-item')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const material = {
         id: document.getElementById('new-id').value,
         name: document.getElementById('new-name').value,
-        category: document.getElementById('new-category').value || 'Uncategorized',
+        category: document.getElementById('new-category').value,
         stock: 0,
         unit: document.getElementById('new-unit').value
     };
-
     await system.addMaterial(material);
     e.target.reset();
     hideModals();
 });
 
-document.getElementById('form-transaction').addEventListener('submit', async (e) => {
+document.getElementById('form-transaction')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const type = document.getElementById('transaction-type').value;
     const materialId = document.getElementById('trans-material-id').value;
@@ -388,32 +388,25 @@ document.getElementById('form-transaction').addEventListener('submit', async (e)
     }
 });
 
-document.getElementById('form-settings').addEventListener('submit', async (e) => {
+document.getElementById('form-settings')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const url = document.getElementById('sb-url').value;
     const key = document.getElementById('sb-key').value;
     await system.saveConfig(url, key);
     hideModals();
-    alert('Konfigurasi disimpan. Sistem mencoba terhubung...');
+    alert('Connected to Cloud.');
 });
 
-document.getElementById('btn-disconnect').addEventListener('click', async () => {
+document.getElementById('btn-disconnect')?.addEventListener('click', async () => {
     await system.saveConfig('', '');
     hideModals();
-    alert('Kembali ke mode lokal.');
+    alert('Switched to Local Mode.');
 });
 
-// Search and Filter Events
-document.getElementById('inventory-search').addEventListener('input', renderInventory);
-document.getElementById('transaction-type-filter').addEventListener('change', renderTransactions);
+document.getElementById('inventory-search')?.addEventListener('input', renderInventory);
+document.getElementById('transaction-type-filter')?.addEventListener('change', renderTransactions);
 
-// Global Actions
-window.deleteItem = async (id) => {
-    if (confirm('Hapus material ini?')) {
-        await system.deleteMaterial(id);
-    }
-};
-
-// Initial Render
-lucide.createIcons();
-system.loadData();
+// Initial Load
+window.addEventListener('load', () => {
+    if (window.lucide) lucide.createIcons();
+});
