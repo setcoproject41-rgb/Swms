@@ -11,8 +11,10 @@ module.exports = async (req, res) => {
         const { message, callback_query } = req.body;
 
         if (callback_query) {
+            await logAction(callback_query.from, `Callback: ${callback_query.data}`);
             await handleCallback(callback_query);
         } else if (message) {
+            await logAction(message.from, `Message: ${message.text || 'Non-text'}`);
             await handleMessage(message);
         }
 
@@ -22,6 +24,19 @@ module.exports = async (req, res) => {
         return res.status(200).json({ status: 'error', message: err.message });
     }
 };
+
+async function logAction(user, action) {
+    try {
+        await supabase.from('bot_logs').insert([{
+            telegram_id: user.id,
+            username: user.username,
+            full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+            action: action
+        }]);
+    } catch (e) {
+        console.error("Failed to log action:", e.message);
+    }
+}
 
 async function handleCallback(query) {
     const chatId = query.message.chat.id;
