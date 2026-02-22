@@ -39,6 +39,12 @@
           <span>Transactions</span>
         </a>
       </li>
+      <li class="nav-item" data-view="botlogs">
+        <a href="#" class="nav-link">
+          <i data-lucide="activity"></i>
+          <span>Bot Logs</span>
+        </a>
+      </li>
     </ul>
 
     <div class="sidebar-footer">
@@ -188,6 +194,24 @@
           <tbody id="transactions-table-body">
             <!-- Rows go here -->
           </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="view-botlogs" class="view-content" style="display: none;">
+      <header>
+        <h1>Bot Interaction Logs</h1>
+      </header>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>User</th>
+              <th>Telegram ID</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="botlogs-table-body"></tbody>
         </table>
       </div>
     </div>
