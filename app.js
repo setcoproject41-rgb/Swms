@@ -44,11 +44,14 @@ class WarehouseSystem {
             if (this.isOnline) {
                 const { data: mats } = await this.client.from('materials').select('*').order('id');
                 const { data: trans } = await this.client.from('transactions').select('*').order('created_at', { ascending: false }).limit(50);
+                const { data: logs } = await this.client.from('bot_logs').select('*').order('created_at', { ascending: false }).limit(50);
                 this.inventory = mats || [];
                 this.transactions = trans || [];
+                this.botLogs = logs || [];
             } else {
                 this.inventory = JSON.parse(localStorage.getItem('wh_inventory')) || [];
                 this.transactions = JSON.parse(localStorage.getItem('wh_transactions')) || [];
+                this.botLogs = [];
             }
         } catch (err) {
             console.error('Error loading data:', err);
@@ -240,8 +243,23 @@ function renderData() {
     renderActivity();
     renderInventory();
     renderFastMoving();
+    renderBotLogs();
 
     if (window.lucide) lucide.createIcons();
+}
+
+function renderBotLogs() {
+    const tableBody = document.getElementById('botlogs-table-body');
+    if (!tableBody || !system.botLogs) return;
+
+    tableBody.innerHTML = system.botLogs.map(log => `
+        <tr>
+            <td style="font-size:0.85rem; color:var(--text-muted)">${new Date(log.created_at).toLocaleString()}</td>
+            <td><div style="font-weight:600">${log.full_name || '-'}</div><div style="font-size:0.75rem; color:var(--text-muted)">@${log.username || 'n/a'}</div></td>
+            <td style="font-family:monospace">${log.telegram_id}</td>
+            <td><span class="badge" style="background:#f1f5f9; color:#1e293b">${log.action}</span></td>
+        </tr>
+    `).join('');
 }
 
 function renderInventory() {
