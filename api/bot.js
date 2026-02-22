@@ -52,17 +52,18 @@ async function handleMessage(message) {
 }
 
 async function sendMainMenu(chatId) {
+    const dashboardUrl = `https://${process.env.VERCEL_URL}?url=${encodeURIComponent(process.env.SUPABASE_URL)}&key=${encodeURIComponent(process.env.SUPABASE_ANON_KEY)}`;
     const opts = {
         reply_markup: {
             inline_keyboard: [
                 [{ text: '📊 Bursa Stok Real-time', callback_data: 'check_stock' }],
                 [{ text: '📥 Barang Masuk', callback_data: 'how_to_in' }, { text: '📤 Barang Keluar', callback_data: 'how_to_out' }],
-                [{ text: 'ℹ️ Info Penggunaan', callback_data: 'usage_info' }, { text: '🌐 Dashboard', url: `https://${process.env.VERCEL_URL}` }]
+                [{ text: 'ℹ️ Info Penggunaan', callback_data: 'usage_info' }, { text: '🌐 Buka Dashboard (Auto-Sync)', url: dashboardUrl }]
             ]
         },
         parse_mode: 'Markdown'
     };
-    return await bot.sendMessage(chatId, "🏪 *WAREHOUSE MONITORING SYSTEM*\n━━━━━━━━━━━━━━━\nMonitor stok material dalam satu genggaman.\n\n👇 *Pilih menu di bawah:*", opts);
+    return await bot.sendMessage(chatId, "🏪 *S.W.M.S MONITORING SYSTEM*\n━━━━━━━━━━━━━━━\nMonitor stok material dalam satu genggaman.\n\n👇 *Pilih menu di bawah:*", opts);
 }
 
 async function showCategories(chatId, type) {
