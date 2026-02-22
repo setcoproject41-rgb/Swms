@@ -1,10 +1,22 @@
 // Data Management
 class WarehouseSystem {
     constructor() {
-        this.config = JSON.parse(localStorage.getItem('wh_config')) || { url: '', key: '' };
+        // Cek parameter di URL untuk auto-config
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoUrl = urlParams.get('url');
+        const autoKey = urlParams.get('key');
+
+        if (autoUrl && autoKey) {
+            this.config = { url: autoUrl, key: autoKey };
+            localStorage.setItem('wh_config', JSON.stringify(this.config));
+            // Bersihkan URL agar kunci tidak terlihat jelas di address bar
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            this.config = JSON.parse(localStorage.getItem('wh_config')) || { url: '', key: '' };
+        }
+
         this.client = null;
         this.isOnline = false;
-
         this.inventory = [];
         this.transactions = [];
 
